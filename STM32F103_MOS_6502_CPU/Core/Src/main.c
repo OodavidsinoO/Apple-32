@@ -21,7 +21,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdint.h>
+#include "mos6502.h"
 
+#include "basic_0xE000.h"
+#include "wozMonitor_0xFF00.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -31,6 +35,20 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+// Memory map
+#define RAM_SIZE 0x8000
+#define BASIC_START 0xE000
+#define PIA_START 0xD010
+#define WOZMON_START 0xFF00
+// Display
+#define TERM_WIDTH 40 // Font 8x10
+#define TERM_HEIGHT 24
+#define SPACE 0x20
+// UART Output
+#define UART_BAUD 115200
+// CPU
+#define CPU_FREQ 1000000 // 1 MHz
+#define INSTRUCTION_CHUNK 10000
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -39,6 +57,7 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+ UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
 
@@ -47,13 +66,77 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
-
+uint8_t read6502(uint16_t address);
+void write6502(uint16_t address, uint8_t value);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+struct pia6821
+{
+  uint8_t keyboard_register; // 0xD010
+  uint8_t keyboard_control;  // Virtual register
+  uint8_t display_register;  // 0xD011
+  uint8_t display_control;   // Virtual register
+} pia = {0};
 
+uint8_t ram[RAM_SIZE];
+
+/**
+ * Read from memory
+ */
+uint8_t read6502(uint16_t address) { // Memory mapping for Apple I
+  // RAM
+  if (address < RAM_SIZE) {
+    return ram[address];
+  }
+
+  // BASIC ROM
+  if (address >= BASIC_START && address < BASIC_START + sizeof(basic)) {
+    return basic[address - BASIC_START];
+  }
+
+  // PIA
+  if (address >= PIA_START && address < 0xD012) {
+    // Set keyboard register to 0x00 to indicate no key pressed
+    if (address == PIA_START) {
+      pia.keyboard_control = 0x00;
+    }
+
+    return *((uint8_t *)&pia + (address - PIA_START));
+  }
+
+  // WOZMON ROM
+  if (address >= WOZMON_START && address < 0xFFFF) {
+    return monitor[address - WOZMON_START];
+  }
+
+  // Unmapped
+  return 0xFF;
+}
+
+/**
+ * Write to memory
+ */
+void write6502(uint16_t address, uint8_t value) {
+  // RAM
+  if (address < RAM_SIZE) {
+    ram[address] = value;
+    return;
+  }
+
+  // PIA
+  if (address >= PIA_START && address < 0xD012) {
+    if (address == PIA_START) {
+      pia.keyboard_register = value;
+      // Set keyboard register to 0xFF to indicate key pressed
+      pia.keyboard_control = 0xFF;
+    }
+  }
+
+}
 /* USER CODE END 0 */
 
 /**
@@ -84,8 +167,9 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-
+  reset6502();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -95,6 +179,15 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    // Write boot info to display to UART
+    
+    HAL_UART_Transmit(&huart1, (uint8_t *)"Apple I Emulator\r\n", 18, 1000);
+    HAL_Delay(100);
+
+    // Read keyboard from UART and write to PIA
+    // Execute 1 instruction
+    // Update display
+    // Detect ChatGPT mode
   }
   /* USER CODE END 3 */
 }
@@ -136,6 +229,39 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief USART1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART1_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART1_Init 0 */
+
+  /* USER CODE END USART1_Init 0 */
+
+  /* USER CODE BEGIN USART1_Init 1 */
+
+  /* USER CODE END USART1_Init 1 */
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 115200;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART1_Init 2 */
+
+  /* USER CODE END USART1_Init 2 */
+
 }
 
 /**
