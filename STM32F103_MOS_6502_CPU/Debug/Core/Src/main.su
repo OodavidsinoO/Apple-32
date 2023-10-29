@@ -33,7 +33,7 @@
 ../Core/Inc/mos6502.h:309:13:acc	0	static
 ../Core/Inc/mos6502.h:279:6:reset6502	0	static
 ../Core/Inc/mos6502.h:1075:6:hookexternal	0	static
-../Core/Src/main.c:90:9:read6502	0	static
+../Core/Src/main.c:105:9:read6502	0	static
 ../Core/Inc/mos6502.h:1030:8:exec6502	32	static
 ../Core/Inc/mos6502.h:392:15:getvalue	8	static
 ../Core/Inc/mos6502.h:784:13:sbc	32	static
@@ -66,7 +66,7 @@
 ../Core/Inc/mos6502.h:317:13:zp	8	static
 ../Core/Inc/mos6502.h:373:13:indx	8	static
 ../Core/Inc/mos6502.h:1055:8:step6502	24	static
-../Core/Src/main.c:123:6:write6502	0	static
+../Core/Src/main.c:143:6:write6502	0	static
 ../Core/Inc/mos6502.h:253:13:push_6502_16	24	static
 ../Core/Inc/mos6502.h:663:13:jsr	8	static
 ../Core/Inc/mos6502.h:259:13:push_6502_8	0	static
@@ -92,6 +92,10 @@
 ../Core/Inc/mos6502.h:914:17:rla	8	static
 ../Core/Inc/mos6502.h:451:13:asl	8	static
 ../Core/Inc/mos6502.h:908:17:slo	8	static
-../Core/Src/main.c:199:6:SystemClock_Config	72	static,ignoring_inline_asm
-../Core/Src/main.c:146:5:main	16	static,ignoring_inline_asm
-../Core/Src/main.c:289:6:Error_Handler	0	static,ignoring_inline_asm
+../Core/Src/main.c:170:6:writelineTerminal	16	static
+../Core/Src/main.c:177:6:writeTerminal	8	static
+../Core/Src/main.c:213:6:initApple1	16	static
+../Core/Src/main.c:184:6:readTerminal	8	static
+../Core/Src/main.c:304:6:SystemClock_Config	72	static,ignoring_inline_asm
+../Core/Src/main.c:246:5:main	16	static,ignoring_inline_asm
+../Core/Src/main.c:394:6:Error_Handler	0	static,ignoring_inline_asm

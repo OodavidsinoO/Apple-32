@@ -21,9 +21,13 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+// Standard libraries
 #include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
+// CPU
 #include "mos6502.h"
-
+// ROM
 #include "basic_0xE000.h"
 #include "wozMonitor_0xFF00.h"
 /* USER CODE END Includes */
@@ -43,12 +47,16 @@
 // Display
 #define TERM_WIDTH 40 // Font 8x10
 #define TERM_HEIGHT 24
-#define SPACE 0x20
-// UART Output
+#define TERM_SIZE TERM_WIDTH * TERM_HEIGHT
+// UART
 #define UART_BAUD 115200
+#define UART_LINE_ENDING "\r\n"
 // CPU
 #define CPU_FREQ 1000000 // 1 MHz
 #define INSTRUCTION_CHUNK 10000
+// Keyboard
+#define KEYBOARD_READ_INTERVAL 10 // ms
+#define SPACE_KEY 0x20
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -70,22 +78,29 @@ static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
 uint8_t read6502(uint16_t address);
 void write6502(uint16_t address, uint8_t value);
+void writelineTerminal(char *buffer);
+void writeTerminal(char *buffer);
+void readTerminal(char *buffer);
+void initApple1(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+// Virtual Hardware
 struct pia6821
 {
   uint8_t keyboard_register; // 0xD010
-  uint8_t keyboard_control;  // Virtual register
-  uint8_t display_register;  // 0xD011
-  uint8_t display_control;   // Virtual register
+  uint8_t keyboard_control;  // 0xD011
+  uint8_t display_register;  // 0xD012
 } pia = {0};
 
 uint8_t ram[RAM_SIZE];
+uint8_t displayBuffer[TERM_SIZE];
+uint8_t keyboardBuffer[1];
 
 /**
- * Read from memory
+ * Read from memory (MOS 6502)
  */
 uint8_t read6502(uint16_t address) { // Memory mapping for Apple I
   // RAM
@@ -99,13 +114,18 @@ uint8_t read6502(uint16_t address) { // Memory mapping for Apple I
   }
 
   // PIA
-  if (address >= PIA_START && address < 0xD012) {
+  if (address >= PIA_START && address < 0xD013) {
     // Set keyboard register to 0x00 to indicate no key pressed
     if (address == PIA_START) {
       pia.keyboard_control = 0x00;
+      return pia.keyboard_register;
     }
-
-    return *((uint8_t *)&pia + (address - PIA_START));
+    // Display register
+    else if (address == PIA_START + 2) {
+      uint8_t display_register = pia.display_register;
+      pia.display_register = 0x00;
+      return display_register;
+    }
   }
 
   // WOZMON ROM
@@ -118,7 +138,7 @@ uint8_t read6502(uint16_t address) { // Memory mapping for Apple I
 }
 
 /**
- * Write to memory
+ * Write to memory (MOS 6502)
  */
 void write6502(uint16_t address, uint8_t value) {
   // RAM
@@ -128,15 +148,95 @@ void write6502(uint16_t address, uint8_t value) {
   }
 
   // PIA
-  if (address >= PIA_START && address < 0xD012) {
+  if (address >= PIA_START && address < 0xD013) {
     if (address == PIA_START) {
       pia.keyboard_register = value;
       // Set keyboard register to 0xFF to indicate key pressed
       pia.keyboard_control = 0xFF;
     }
+    else if (address == PIA_START + 1) {
+      pia.keyboard_control = value;
+    }
+    else if (address == PIA_START + 2) {
+      pia.display_register = value ^ 0x80;
+    }
   }
 
 }
+
+/**
+ * Write string with line ending to UART & LCD (STM32)
+ */
+void writelineTerminal(char *buffer) {
+  HAL_UART_Transmit(&huart1, (uint8_t *)buffer, strlen(buffer), HAL_MAX_DELAY); HAL_UART_Transmit(&huart1, (uint8_t *)UART_LINE_ENDING, strlen(UART_LINE_ENDING), HAL_MAX_DELAY);
+}
+
+/**
+ * Write string to UART & LCD without line ending (STM32)
+ */
+void writeTerminal(char *buffer) {
+  HAL_UART_Transmit(&huart1, (uint8_t *)buffer, strlen(buffer), HAL_MAX_DELAY);
+}
+
+/**
+ * Read string from keyboard (UART & PS/2) (STM32)
+ */
+void readTerminal(char *buffer) {
+  HAL_UART_Receive(&huart1, (uint8_t *)buffer, 1, KEYBOARD_READ_INTERVAL); // Read from UART
+  // TODO: Read from PS/2
+
+  /* Key Translation for Apple I */
+  // Convert lowercase to uppercase
+  if (buffer[0] >= 'a' && buffer[0] <= 'z') {
+    buffer[0] -= 0x20;
+  }
+  // Convert LF to CR
+  else if (buffer[0] == '\n') {
+    buffer[0] = '\r';
+  }
+  // Convert backspace to rubout
+  else if (buffer[0] == 0x7F) {
+    buffer[0] = 0x7F;
+  }
+  // Ctrl + C to reset
+  else if (buffer[0] == 0x03) {
+    writelineTerminal("Resetting in 5 seconds...");
+    HAL_Delay(5000);
+    keyboardBuffer[0] = SPACE_KEY;
+    initApple1();
+  }
+}
+
+/**
+ * Initialize Apple I
+ */
+void initApple1(void) {
+  // Wait for space key to be pressed in UART
+  do {
+    HAL_Delay(1000);
+    writelineTerminal("Press <space> to boot Apple I");
+    readTerminal((char *)keyboardBuffer);
+  } while (keyboardBuffer[0] != SPACE_KEY);
+
+  // Initialize CPU
+  writeTerminal("Initializing CPU...");
+  reset6502(); writelineTerminal(" Complete");
+
+  // Initialize RAM
+  writeTerminal("Initializing RAM...");
+  for (uint16_t i = 0; i < RAM_SIZE; i++) {
+    ram[i] = 0x00;
+  }
+  writelineTerminal(" Complete");
+
+  // Initialize PIA
+  writeTerminal("Initializing PIA...");
+  pia.keyboard_register = 0x00;
+  pia.keyboard_control = 0x00;
+  pia.display_register = 0x00;
+  writelineTerminal(" Complete");
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -169,7 +269,7 @@ int main(void)
   MX_GPIO_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  reset6502();
+  initApple1(); // Initialize Apple I
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -179,14 +279,19 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    // Write boot info to display to UART
-    
-    HAL_UART_Transmit(&huart1, (uint8_t *)"Apple I Emulator\r\n", 18, 1000);
-    HAL_Delay(100);
-
     // Read keyboard from UART and write to PIA
-    // Execute 1 instruction
+    readTerminal((char *)keyboardBuffer);
+    write6502(PIA_START, keyboardBuffer[0]);
+    // Execute instruction
+    exec6502(INSTRUCTION_CHUNK);
     // Update display
+    if (read6502(PIA_START + 2) != 0x00) {
+      writeTerminal((char *)&pia.display_register);
+    }
+    // Debug
+    // char debugMsg[100];
+    // sprintf(debugMsg, "PIA: %02X %02X %02X", pia.keyboard_register, pia.keyboard_control, pia.display_register);
+    // writelineTerminal(debugMsg);
     // Detect ChatGPT mode
   }
   /* USER CODE END 3 */
@@ -309,7 +414,7 @@ void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+     ex: printf("Wrong parameters value: file %s on line %d\n", file, line) */
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
