@@ -42,7 +42,7 @@ extern uint8_t RAM[RAM_SIZE];
 #define setsign() cpustatus |= FLAG_SIGN
 #define clearsign() cpustatus &= (~FLAG_SIGN)
 
-// Flag calculation macros
+// Flag Calculation Macros
 #define zerocalc(n) { if ((n) & 0x00FF) clearzero(); else setzero(); }
 #define signcalc(n) { if ((n) & 0x0080) setsign(); else clearsign(); }
 #define carrycalc(n) { if ((n) & 0xFF00) setcarry(); else clearcarry(); }

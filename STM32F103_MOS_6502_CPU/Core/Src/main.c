@@ -114,35 +114,40 @@ uint8_t read6502(uint16_t address) { // Memory mapping for Apple I
 
   // PIA (ACIA 6821)
   if (address == PIA_KEYBOARD_REG) {
-    handleInput((char *)keyboardBuffer);
-    pia.keyboard_register = keyboardBuffer[0] | 0x80;
-    keyboardBuffer[0] = 0x00;
 
     // Debug
-    char debugMsg[100];
-    sprintf(debugMsg, "\nPIA: 0x%02X 0x%02X 0x%02X 0x%02X", pia.keyboard_register, pia.keyboard_control, pia.display_register, pia.display_control);
-    writelineTerminal(debugMsg);
+    // char debugMsg[100];
+    // sprintf(debugMsg, "read6502()::PIA_KEYBOARD_REG at 0x%04X", address);
+    // writelineTerminal(debugMsg);
 
     return pia.keyboard_register;
   }
   if (address == PIA_KEYBOARD_CTRL) {
-    // Debug
-    char debugMsg[100];
-    sprintf(debugMsg, "read6502()::PIA_KEYBOARD_CTRL at 0x%04X", address);
-    writelineTerminal(debugMsg);
 
-    if (keyboardBuffer[0] != 0x00)
+    // Debug
+    // char debugMsg[100];
+    // sprintf(debugMsg, "read6502()::PIA_KEYBOARD_CTRL at 0x%04X", address);
+    // writelineTerminal(debugMsg);
+
+    // Read from keyboard
+    handleInput((char *)keyboardBuffer);
+    pia.keyboard_register = keyboardBuffer[0] | 0x80;
+
+    if (keyboardBuffer[0] != 0x00) {
+      keyboardBuffer[0] = 0x00;
       return 0x80;
+    }
     else
       return 0x00;
   }
 
   // BASIC ROM
   if (address >= BASIC_START && address <= 0xEFFF) {
+
     // Debug
-    char debugMsg[100];
-    sprintf(debugMsg, "read6502()::BASIC_ROM at 0x%04X", address);
-    writelineTerminal(debugMsg);
+    // char debugMsg[100];
+    // sprintf(debugMsg, "read6502()::BASIC_ROM at 0x%04X", address);
+    // writelineTerminal(debugMsg);
 
     BASIC_addr = address - 0xE000;
     #if ASSEMBLER
@@ -154,10 +159,11 @@ uint8_t read6502(uint16_t address) { // Memory mapping for Apple I
 
   // WOZMON ROM
   if (address >= 0xF000) {
+
     // Debug
-    char debugMsg[100];
-    sprintf(debugMsg, "read6502()::WOZMON_ROM at 0x%04X", address);
-    writelineTerminal(debugMsg);
+    // char debugMsg[100];
+    // sprintf(debugMsg, "read6502()::WOZMON_ROM at 0x%04X", address);
+    // writelineTerminal(debugMsg);
 
     monitor_addr = (address - 0xF000) & 0xFF; // get => 0..255 for woz rom
     if (monitor_addr < 0x100) return monitor[monitor_addr];
@@ -225,7 +231,7 @@ void handleInput(char *buffer) {
   }
   // Ctrl + C to reset
   else if (buffer[0] == 0x03) {
-    writelineTerminal("Resetting in 5 seconds...");
+    writelineTerminal("[Ctrl + C detected] Resetting in 5 seconds...");
     HAL_Delay(5000);
     keyboardBuffer[0] = SPACE_KEY;
     initApple1();
