@@ -23,7 +23,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
  ../Core/Inc/mos6502.h ../Core/Inc/basic_0xE000.h \
- ../Core/Inc/wozMonitor_0xFF00.h
+ ../Core/Inc/wozMonitor_0xFF00.h ../Core/Inc/apple1Assembler_0xE000.h
 ../Core/Inc/main.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h:
 ../Core/Inc/stm32f1xx_hal_conf.h:
@@ -51,3 +51,4 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Core/Inc/mos6502.h:
 ../Core/Inc/basic_0xE000.h:
 ../Core/Inc/wozMonitor_0xFF00.h:
+../Core/Inc/apple1Assembler_0xE000.h:

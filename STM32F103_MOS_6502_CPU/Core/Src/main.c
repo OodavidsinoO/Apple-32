@@ -25,11 +25,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
-// CPU
+// MOS 6502
 #include "mos6502.h"
-// ROM
-#include "basic_0xE000.h"
-#include "wozMonitor_0xFF00.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -40,9 +37,11 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 // Memory map
-#define RAM_SIZE 0x8000
 #define BASIC_START 0xE000
-#define PIA_START 0xD010
+#define PIA_KEYBOARD_REG 0xD010
+#define PIA_KEYBOARD_CTRL 0xD011
+#define PIA_DISPLAY_REG 0xD012
+#define PIA_DISPLAY_CTRL 0xD013
 #define WOZMON_START 0xFF00
 // Display
 #define TERM_WIDTH 40 // Font 8x10
@@ -61,7 +60,8 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+// #define TO_APPLE1CHAR(asciichar) (asciichar + 0x80);
+// #define TO_ASCII(ascii) ascii & 0x7F;
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -76,11 +76,15 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
+// MOS 6502
 uint8_t read6502(uint16_t address);
 void write6502(uint16_t address, uint8_t value);
+// UART & LCD
 void writelineTerminal(char *buffer);
 void writeTerminal(char *buffer);
-void readTerminal(char *buffer);
+void handleInput(char *buffer);
+void handleOutput(uint8_t value);
+// Apple I Initialization
 void initApple1(void);
 /* USER CODE END PFP */
 
@@ -90,51 +94,77 @@ void initApple1(void);
 // Virtual Hardware
 struct pia6821
 {
-  uint8_t keyboard_register; // 0xD010
-  uint8_t keyboard_control;  // 0xD011
-  uint8_t display_register;  // 0xD012
+  uint8_t keyboard_register; // 0xD010 (Input)
+  uint8_t keyboard_control;  // 0xD011 (KB Ready)
+  uint8_t display_register;  // 0xD012 (Output)
+  uint8_t display_control;   // 0xD013 (ATTR)
 } pia = {0};
 
-uint8_t ram[RAM_SIZE];
-uint8_t displayBuffer[TERM_SIZE];
-uint8_t keyboardBuffer[1];
+uint8_t RAM[RAM_SIZE];
+uint8_t keyboardBuffer[1] = {0x00};
 
 /**
  * Read from memory (MOS 6502)
  */
 uint8_t read6502(uint16_t address) { // Memory mapping for Apple I
+  uint16_t BASIC_addr, monitor_addr;
+
   // RAM
-  if (address < RAM_SIZE) {
-    return ram[address];
+  if (address < RAM_SIZE) return RAM[address];
+
+  // PIA (ACIA 6821)
+  if (address == PIA_KEYBOARD_REG) {
+    handleInput((char *)keyboardBuffer);
+    pia.keyboard_register = keyboardBuffer[0] | 0x80;
+    keyboardBuffer[0] = 0x00;
+
+    // Debug
+    char debugMsg[100];
+    sprintf(debugMsg, "\nPIA: 0x%02X 0x%02X 0x%02X 0x%02X", pia.keyboard_register, pia.keyboard_control, pia.display_register, pia.display_control);
+    writelineTerminal(debugMsg);
+
+    return pia.keyboard_register;
+  }
+  if (address == PIA_KEYBOARD_CTRL) {
+    // Debug
+    char debugMsg[100];
+    sprintf(debugMsg, "read6502()::PIA_KEYBOARD_CTRL at 0x%04X", address);
+    writelineTerminal(debugMsg);
+
+    if (keyboardBuffer[0] != 0x00)
+      return 0x80;
+    else
+      return 0x00;
   }
 
   // BASIC ROM
-  if (address >= BASIC_START && address < BASIC_START + sizeof(basic)) {
-    return basic[address - BASIC_START];
-  }
+  if (address >= BASIC_START && address <= 0xEFFF) {
+    // Debug
+    char debugMsg[100];
+    sprintf(debugMsg, "read6502()::BASIC_ROM at 0x%04X", address);
+    writelineTerminal(debugMsg);
 
-  // PIA
-  if (address >= PIA_START && address < 0xD013) {
-    // Set keyboard register to 0x00 to indicate no key pressed
-    if (address == PIA_START) {
-      pia.keyboard_control = 0x00;
-      return pia.keyboard_register;
-    }
-    // Display register
-    else if (address == PIA_START + 2) {
-      uint8_t display_register = pia.display_register;
-      pia.display_register = 0x00;
-      return display_register;
-    }
+    BASIC_addr = address - 0xE000;
+    #if ASSEMBLER
+      return BASIC[BASIC_addr];
+    #else
+      return A1AE0[BASIC_addr];
+    #endif
   }
 
   // WOZMON ROM
-  if (address >= WOZMON_START && address < 0xFFFF) {
-    return monitor[address - WOZMON_START];
+  if (address >= 0xF000) {
+    // Debug
+    char debugMsg[100];
+    sprintf(debugMsg, "read6502()::WOZMON_ROM at 0x%04X", address);
+    writelineTerminal(debugMsg);
+
+    monitor_addr = (address - 0xF000) & 0xFF; // get => 0..255 for woz rom
+    if (monitor_addr < 0x100) return monitor[monitor_addr];
   }
 
   // Unmapped
-  return 0xFF;
+  return 0x00;
 }
 
 /**
@@ -143,25 +173,16 @@ uint8_t read6502(uint16_t address) { // Memory mapping for Apple I
 void write6502(uint16_t address, uint8_t value) {
   // RAM
   if (address < RAM_SIZE) {
-    ram[address] = value;
-    return;
+    RAM[address] = value;
   }
 
-  // PIA
-  if (address >= PIA_START && address < 0xD013) {
-    if (address == PIA_START) {
-      pia.keyboard_register = value;
-      // Set keyboard register to 0xFF to indicate key pressed
-      pia.keyboard_control = 0xFF;
-    }
-    else if (address == PIA_START + 1) {
-      pia.keyboard_control = value;
-    }
-    else if (address == PIA_START + 2) {
-      pia.display_register = value ^ 0x80;
-    }
+  // PIA (ACIA 6821)
+  if (address == PIA_DISPLAY_REG) {
+    pia.display_register = value;
+    value &= 0x7F;
+    // HAL_UART_Transmit(&huart1, (uint8_t *)&value, 1, HAL_MAX_DELAY);
+    handleOutput(value);
   }
-
 }
 
 /**
@@ -181,10 +202,11 @@ void writeTerminal(char *buffer) {
 /**
  * Read string from keyboard (UART & PS/2) (STM32)
  */
-void readTerminal(char *buffer) {
+void handleInput(char *buffer) {
   HAL_UART_Receive(&huart1, (uint8_t *)buffer, 1, KEYBOARD_READ_INTERVAL); // Read from UART
   // TODO: Read from PS/2
 
+  buffer[0] &= 0x7F; // Mask out MSB
   /* Key Translation for Apple I */
   // Convert lowercase to uppercase
   if (buffer[0] >= 'a' && buffer[0] <= 'z') {
@@ -194,9 +216,12 @@ void readTerminal(char *buffer) {
   else if (buffer[0] == '\n') {
     buffer[0] = '\r';
   }
+  else if (buffer[0] == '\b') {
+    buffer[0] = 0x5F;
+  }
   // Convert backspace to rubout
   else if (buffer[0] == 0x7F) {
-    buffer[0] = 0x7F;
+    buffer[0] = '_';
   }
   // Ctrl + C to reset
   else if (buffer[0] == 0x03) {
@@ -208,6 +233,18 @@ void readTerminal(char *buffer) {
 }
 
 /**
+ * Write character to UART & LCD (MOS 6502)
+ */
+void handleOutput(uint8_t value) {
+  if (value == 13) {
+    HAL_UART_Transmit(&huart1, (uint8_t *)UART_LINE_ENDING, strlen(UART_LINE_ENDING), HAL_MAX_DELAY);
+  }
+  else {
+    HAL_UART_Transmit(&huart1, (uint8_t *)&value, 1, HAL_MAX_DELAY);
+  }
+}
+
+/**
  * Initialize Apple I
  */
 void initApple1(void) {
@@ -215,8 +252,9 @@ void initApple1(void) {
   do {
     HAL_Delay(1000);
     writelineTerminal("Press <space> to boot Apple I");
-    readTerminal((char *)keyboardBuffer);
+    handleInput((char *)keyboardBuffer);
   } while (keyboardBuffer[0] != SPACE_KEY);
+  keyboardBuffer[0] = 0x00;
 
   // Initialize CPU
   writeTerminal("Initializing CPU...");
@@ -225,7 +263,7 @@ void initApple1(void) {
   // Initialize RAM
   writeTerminal("Initializing RAM...");
   for (uint16_t i = 0; i < RAM_SIZE; i++) {
-    ram[i] = 0x00;
+    RAM[i] = 0x00;
   }
   writelineTerminal(" Complete");
 
@@ -279,20 +317,12 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    // Read keyboard from UART and write to PIA
-    readTerminal((char *)keyboardBuffer);
-    write6502(PIA_START, keyboardBuffer[0]);
     // Execute instruction
     exec6502(INSTRUCTION_CHUNK);
-    // Update display
-    if (read6502(PIA_START + 2) != 0x00) {
-      writeTerminal((char *)&pia.display_register);
-    }
     // Debug
     // char debugMsg[100];
-    // sprintf(debugMsg, "PIA: %02X %02X %02X", pia.keyboard_register, pia.keyboard_control, pia.display_register);
+    // sprintf(debugMsg, "PIA: 0x%02X 0x%02X 0x%02X 0x%02X", pia.keyboard_register, pia.keyboard_control, pia.display_register, pia.display_control);
     // writelineTerminal(debugMsg);
-    // Detect ChatGPT mode
   }
   /* USER CODE END 3 */
 }
