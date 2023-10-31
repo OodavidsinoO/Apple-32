@@ -7,3 +7,7 @@
 #define RAM_SIZE 0x8000
 // Assembler Selection, 0 = The A1-Assembler, 1 = Original Apple 1 BASIC
 #define ASSEMBLER 1
+
+// Main CPU functions
+void reset6502();
+void exec6502(int32_t tickcount);

@@ -7,45 +7,45 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
   1 .text         000026d8  080001e4  080001e4  000101e4  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .rodata       000011ac  080028bc  080028bc  000128bc  2**0
+  2 .rodata       000011c0  080028bc  080028bc  000128bc  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  3 .ARM.extab    00000000  08003a68  08003a68  0002000c  2**0
+  3 .ARM.extab    00000000  08003a7c  08003a7c  0002000c  2**0
                   CONTENTS
-  4 .ARM          00000000  08003a68  08003a68  0002000c  2**0
+  4 .ARM          00000000  08003a7c  08003a7c  0002000c  2**0
                   CONTENTS
-  5 .preinit_array 00000000  08003a68  08003a68  0002000c  2**0
+  5 .preinit_array 00000000  08003a7c  08003a7c  0002000c  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  6 .init_array   00000004  08003a68  08003a68  00013a68  2**2
+  6 .init_array   00000004  08003a7c  08003a7c  00013a7c  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  7 .fini_array   00000004  08003a6c  08003a6c  00013a6c  2**2
+  7 .fini_array   00000004  08003a80  08003a80  00013a80  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  8 .data         0000000c  20000000  08003a70  00020000  2**2
+  8 .data         0000000c  20000000  08003a84  00020000  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  9 .bss          0000808c  2000000c  08003a7c  0002000c  2**2
+  9 .bss          0000808c  2000000c  08003a90  0002000c  2**2
                   ALLOC
- 10 ._user_heap_stack 00000600  20008098  08003a7c  00028098  2**0
+ 10 ._user_heap_stack 00000600  20008098  08003a90  00028098  2**0
                   ALLOC
  11 .ARM.attributes 00000029  00000000  00000000  0002000c  2**0
                   CONTENTS, READONLY
- 12 .debug_info   0000d0f1  00000000  00000000  00020035  2**0
+ 12 .debug_info   0000d0cb  00000000  00000000  00020035  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_abbrev 000019a2  00000000  00000000  0002d126  2**0
+ 13 .debug_abbrev 000019b5  00000000  00000000  0002d100  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_loc    000059e5  00000000  00000000  0002eac8  2**0
+ 14 .debug_loc    000059e5  00000000  00000000  0002eab5  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_aranges 000007d0  00000000  00000000  000344b0  2**3
+ 15 .debug_aranges 000007d0  00000000  00000000  000344a0  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_ranges 00000a10  00000000  00000000  00034c80  2**3
+ 16 .debug_ranges 00000a10  00000000  00000000  00034c70  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_macro  000186f3  00000000  00000000  00035690  2**0
+ 17 .debug_macro  000186f3  00000000  00000000  00035680  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_line   0000b1a0  00000000  00000000  0004dd83  2**0
+ 18 .debug_line   0000b19f  00000000  00000000  0004dd73  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .debug_str    0008f9ce  00000000  00000000  00058f23  2**0
+ 19 .debug_str    0008f9ce  00000000  00000000  00058f12  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 20 .comment      00000050  00000000  00000000  000e88f1  2**0
+ 20 .comment      00000050  00000000  00000000  000e88e0  2**0
                   CONTENTS, READONLY
- 21 .debug_frame  00001434  00000000  00000000  000e8944  2**2
+ 21 .debug_frame  00001434  00000000  00000000  000e8930  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -325,7 +325,7 @@ void handleInput(char *buffer) {
   else if (buffer[0] == 0x03) {
  800039a:	2b03      	cmp	r3, #3
  800039c:	d1f2      	bne.n	8000384 <handleInput+0x24>
-    writelineTerminal("Resetting in 5 seconds...");
+    writelineTerminal("[Ctrl + C detected] Resetting in 5 seconds...");
  800039e:	4808      	ldr	r0, [pc, #32]	; (80003c0 <handleInput+0x60>)
  80003a0:	f7ff ff48 	bl	8000234 <writelineTerminal>
     HAL_Delay(5000);
@@ -409,8 +409,8 @@ uint8_t read6502(uint16_t address) { // Memory mapping for Apple I
  8000428:	20000028 	.word	0x20000028
  800042c:	20008071 	.word	0x20008071
  8000430:	20008070 	.word	0x20008070
- 8000434:	0800293d 	.word	0x0800293d
- 8000438:	0800393d 	.word	0x0800393d
+ 8000434:	08002951 	.word	0x08002951
+ 8000438:	08003951 	.word	0x08003951
 
 0800043c <SystemClock_Config>:
 /**
@@ -4174,7 +4174,7 @@ LoopFillZerobss:
   ldr r1, =_edata
  8001d8c:	2000000c 	.word	0x2000000c
   ldr r2, =_sidata
- 8001d90:	08003a70 	.word	0x08003a70
+ 8001d90:	08003a84 	.word	0x08003a84
   ldr r2, =_sbss
  8001d94:	2000000c 	.word	0x2000000c
   ldr r4, =_ebss
@@ -5276,9 +5276,9 @@ static void RCC_Delay(uint32_t mdelay)
  8002440:	4770      	bx	lr
  8002442:	bf00      	nop
  8002444:	40021000 	.word	0x40021000
- 8002448:	08003a55 	.word	0x08003a55
+ 8002448:	08003a69 	.word	0x08003a69
  800244c:	007a1200 	.word	0x007a1200
- 8002450:	08003a65 	.word	0x08003a65
+ 8002450:	08003a79 	.word	0x08003a79
  8002454:	003d0900 	.word	0x003d0900
 
 08002458 <HAL_RCC_ClockConfig>:
@@ -5440,7 +5440,7 @@ if (((RCC_ClkInitStruct->ClockType) & RCC_CLOCKTYPE_PCLK1) == RCC_CLOCKTYPE_PCLK
  800257a:	e78b      	b.n	8002494 <HAL_RCC_ClockConfig+0x3c>
  800257c:	40022000 	.word	0x40022000
  8002580:	40021000 	.word	0x40021000
- 8002584:	08003a3d 	.word	0x08003a3d
+ 8002584:	08003a51 	.word	0x08003a51
  8002588:	20000000 	.word	0x20000000
  800258c:	20000008 	.word	0x20000008
 
@@ -5457,7 +5457,7 @@ if (((RCC_ClkInitStruct->ClockType) & RCC_CLOCKTYPE_PCLK1) == RCC_CLOCKTYPE_PCLK
  80025a0:	40d8      	lsrs	r0, r3
  80025a2:	4770      	bx	lr
  80025a4:	40021000 	.word	0x40021000
- 80025a8:	08003a4d 	.word	0x08003a4d
+ 80025a8:	08003a61 	.word	0x08003a61
  80025ac:	20000000 	.word	0x20000000
 
 080025b0 <HAL_RCC_GetPCLK2Freq>:
@@ -5473,7 +5473,7 @@ if (((RCC_ClkInitStruct->ClockType) & RCC_CLOCKTYPE_PCLK1) == RCC_CLOCKTYPE_PCLK
  80025c0:	40d8      	lsrs	r0, r3
  80025c2:	4770      	bx	lr
  80025c4:	40021000 	.word	0x40021000
- 80025c8:	08003a4d 	.word	0x08003a4d
+ 80025c8:	08003a61 	.word	0x08003a61
  80025cc:	20000000 	.word	0x20000000
 
 080025d0 <UART_SetConfig>:
@@ -5927,10 +5927,10 @@ __STATIC_FORCEINLINE uint32_t __STREXW(uint32_t value, volatile uint32_t *addr)
  800287e:	4798      	blx	r3
  8002880:	3601      	adds	r6, #1
  8002882:	e7f2      	b.n	800286a <__libc_init_array+0x1e>
- 8002884:	08003a68 	.word	0x08003a68
- 8002888:	08003a68 	.word	0x08003a68
- 800288c:	08003a68 	.word	0x08003a68
- 8002890:	08003a6c 	.word	0x08003a6c
+ 8002884:	08003a7c 	.word	0x08003a7c
+ 8002888:	08003a7c 	.word	0x08003a7c
+ 800288c:	08003a7c 	.word	0x08003a7c
+ 8002890:	08003a80 	.word	0x08003a80
 
 08002894 <memset>:
  8002894:	4603      	mov	r3, r0

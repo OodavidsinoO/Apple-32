@@ -58,48 +58,6 @@ int32_t clockticks6502 = 0, clockgoal6502 = 0;
 uint16_t oldpc, ea, reladdr, value, result;
 uint8_t opcode, oldcpustatus, useaccum;
 
-// uint8_t read6502(uint16_t address) {
-//   uint16_t BASIC_addr, monitor_addr;
-//   uint8_t tempval = 0;
-
-//   if (address == 0xD010) { // a1 simulated PIA key input
-//     tempval = getkey() | 0x80;
-//     clearkey();
-//     // printhex(tempval);
-//     return(tempval);
-//   }
-
-//   if (address == 0xD011) { // a1 simulated PIA key avail.
-//     tempval = isakey();
-//     // printhex(tempval);
-//     return(tempval);
-//   }
-
-//   if ((address >= 0xE000) && (address <= 0xEFFF)) {
-//     BASIC_addr = address - 0xE000;
-//     #if ASSEMBLER
-//       return(BASIC[BASIC_addr]);
-//     #else
-//       return(A1AE0[BASIC_addr]);
-//     #endif
-//   }
- 
-//   if (address >= 0xF000) {
-//     monitor_addr = (address - 0xF000) & 0xFF; // get => 0..255 for woz rom
-//     if (monitor_addr < 0x100) return(monitor[monitor_addr]);
-//   }
-  
-//   if (address < RAM_SIZE) return(RAM[address]);
-//   return(0);
-// }
-
-// void write6502(uint16_t address, uint8_t value) {
-//   if (address < RAM_SIZE) RAM[address] = value;
-//   if (address == 0xD012) { // a1 simulated PIA output
-//     serout(value & 0x7F);
-//   }
-// }
-
 // a few general functions used by various other functions
 void push16(uint16_t pushval) {
     write6502(BASE_STACK + sp, (pushval >> 8) & 0xFF);
@@ -739,7 +697,7 @@ void irq6502() {
 }
 
 #ifdef USE_TIMING
-prog_char ticktable[256] PROGMEM = {
+const char ticktable[256] = {
 /*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |     */
 /* 0 */      7,    6,    2,    8,    3,    3,    5,    5,    3,    2,    2,    2,    4,    4,    6,    6,  /* 0 */
 /* 1 */      2,    5,    2,    8,    4,    4,    6,    6,    2,    4,    2,    7,    4,    4,    7,    7,  /* 1 */
