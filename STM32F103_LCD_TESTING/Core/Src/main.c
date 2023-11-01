@@ -131,6 +131,31 @@ int main(void)
     }
     HAL_Delay(5000);
     LCD_Clear(LCD_MIN_COL, LCD_MIN_PAGE, LCD_MAX_COL, LCD_MAX_PAGE, 0x0000);
+    for (int i = 0; i < 10; i++) {
+      char str[40];
+      for (int j = 0; j < 40; j++) {
+        if (j % 2 == 0) {
+          str[j] = '_';
+        } else {
+          str[j] = '@';
+        }
+      }
+      for (int j = 0; j < 24; j++) {
+        LCD_DrawString(0, j * 10, str);
+      }
+      HAL_Delay(1000);
+      for (int j = 0; j < 40; j++) {
+        if (j % 2 == 0) {
+          str[j] = ' ';
+        } else {
+          str[j] = '@';
+        }
+      }
+      for (int j = 0; j < 24; j++) {
+        LCD_DrawString(0, j * 10, str);
+      }
+      HAL_Delay(1000);
+    }
     /* USER CODE END 3 */
   }
 }
