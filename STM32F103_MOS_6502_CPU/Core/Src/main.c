@@ -28,7 +28,7 @@
 // MOS 6502
 #include "mos6502.h"
 // LCD
-// #include "lcd.h"
+#include "lcd.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,6 +49,8 @@
 #define TERM_WIDTH 40 // Font 8x10
 #define TERM_HEIGHT 24
 #define TERM_SIZE TERM_WIDTH * TERM_HEIGHT
+#define FONT_WIDTH 8
+#define FONT_HEIGHT 10
 // UART
 #define UART_BAUD 115200
 #define UART_LINE_ENDING "\r\n"
@@ -87,6 +89,7 @@ void write6502(uint16_t address, uint8_t value);
 // UART & LCD
 void writelineTerminal(char *buffer);
 void writeTerminal(char *buffer);
+void writeTerminalChar(char *buffer);
 void handleInput(char *buffer);
 void handleOutput(uint8_t value);
 // Apple I Initialization
@@ -95,6 +98,10 @@ void initApple1(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+// LCD Hardware
+uint8_t LCD_CURSOR_X = 0; // 0..39
+uint8_t LCD_CURSOR_Y = 0; // 0..23
 
 // Virtual Hardware
 struct pia6821
@@ -191,7 +198,6 @@ void write6502(uint16_t address, uint8_t value) {
   if (address == PIA_DISPLAY_REG) {
     pia.display_register = value;
     value &= 0x7F;
-    // HAL_UART_Transmit(&huart1, (uint8_t *)&value, 1, HAL_MAX_DELAY);
     handleOutput(value);
   }
 }
@@ -200,14 +206,45 @@ void write6502(uint16_t address, uint8_t value) {
  * Write string with line ending to UART & LCD (STM32)
  */
 void writelineTerminal(char *buffer) {
+  // UART
   HAL_UART_Transmit(&huart1, (uint8_t *)buffer, strlen(buffer), HAL_MAX_DELAY); HAL_UART_Transmit(&huart1, (uint8_t *)UART_LINE_ENDING, strlen(UART_LINE_ENDING), HAL_MAX_DELAY);
+
+  // LCD
+  LCD_DrawString(LCD_CURSOR_X * FONT_WIDTH, LCD_CURSOR_Y * FONT_HEIGHT, buffer);
+  LCD_CursorNewline();
 }
 
 /**
  * Write string to UART & LCD without line ending (STM32)
  */
 void writeTerminal(char *buffer) {
+  // UART
   HAL_UART_Transmit(&huart1, (uint8_t *)buffer, strlen(buffer), HAL_MAX_DELAY);
+
+  // LCD
+  uint8_t tempX = LCD_CURSOR_X;
+  uint8_t tempY = LCD_CURSOR_Y;
+  for (uint8_t i = 0; i < strlen(buffer); i++) {
+    LCD_CursorForward();
+  }
+  LCD_DrawString(tempX * FONT_WIDTH, tempY * FONT_HEIGHT, buffer);
+}
+
+/**
+ * Write char to UART & LCD without line ending (STM32)
+ */
+void writeTerminalChar(char *buffer) {
+  // UART
+  HAL_UART_Transmit(&huart1, (uint8_t *)buffer, 1, HAL_MAX_DELAY);
+
+  // LCD
+  uint8_t tempX = LCD_CURSOR_X;
+  uint8_t tempY = LCD_CURSOR_Y;
+  char tempChar[2] = {0x00};
+  tempChar[0] = buffer[0];
+  tempChar[1] = '\0';
+  LCD_CursorForward();
+  LCD_DrawString(tempX * FONT_WIDTH, tempY * FONT_HEIGHT, tempChar);
 }
 
 /**
@@ -236,7 +273,7 @@ void handleInput(char *buffer) {
   }
   // Ctrl + C to reset
   else if (buffer[0] == 0x03) {
-    writelineTerminal("\n[Ctrl + C detected] Resetting in 5 seconds...");
+    writelineTerminal("[Ctrl + C] Resetting in 5 seconds...");
     HAL_Delay(5000);
     keyboardBuffer[0] = SPACE_KEY;
     initApple1();
@@ -248,10 +285,19 @@ void handleInput(char *buffer) {
  */
 void handleOutput(uint8_t value) {
   if (value == 13) {
+    // UART Newline
     HAL_UART_Transmit(&huart1, (uint8_t *)UART_LINE_ENDING, strlen(UART_LINE_ENDING), HAL_MAX_DELAY);
+    // LCD Newline
+    LCD_Clear(LCD_CURSOR_X * FONT_WIDTH, LCD_CURSOR_Y * FONT_HEIGHT, FONT_WIDTH, FONT_HEIGHT, BLACK);
+    if (++LCD_CURSOR_Y > 23) {
+		  LCD_CURSOR_Y = 0;
+		  // Clear the screen
+		  LCD_Clear(0, 0, 320, 240, BACKGROUND);
+	  }
+	  LCD_CURSOR_X = 0;
   }
   else {
-    HAL_UART_Transmit(&huart1, (uint8_t *)&value, 1, HAL_MAX_DELAY);
+    writeTerminalChar((char *)&value);
   }
 }
 
@@ -319,7 +365,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_FSMC_Init();
   /* USER CODE BEGIN 2 */
-  // LCD_INIT(); // Initialize LCD
+  LCD_INIT(); // Initialize LCD
   initApple1(); // Initialize Apple I
   /* USER CODE END 2 */
 

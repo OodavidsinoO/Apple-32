@@ -1,3 +1,4 @@
+"./Core/Src/lcd.o"
 "./Core/Src/main.o"
 "./Core/Src/mos6502.o"
 "./Core/Src/sdioTapes.o"
