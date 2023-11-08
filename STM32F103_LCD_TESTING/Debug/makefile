@@ -60,8 +60,8 @@ all: main-build
 main-build: LAB3.elf secondary-outputs
 
 # Tool invocations
-LAB3.elf LAB3.map: $(OBJS) $(USER_OBJS) O:\2_Learning\2_HKUST\ Courses\ELEC3300\Apple\ 32\STM32F103_LCD_TESTING\STM32F103VETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "LAB3.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"O:\2_Learning\2_HKUST Courses\ELEC3300\Apple 32\STM32F103_LCD_TESTING\STM32F103VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="LAB3.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+LAB3.elf LAB3.map: $(OBJS) $(USER_OBJS) C:\Users\pasha\OneDrive\Desktop\Univesity\ bwomp\HKUST\ELEC3300\Project\Apple-32\STM32F103_LCD_TESTING\STM32F103VETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "LAB3.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"C:\Users\pasha\OneDrive\Desktop\Univesity bwomp\HKUST\ELEC3300\Project\Apple-32\STM32F103_LCD_TESTING\STM32F103VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="LAB3.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

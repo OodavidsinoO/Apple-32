@@ -1,6 +1,7 @@
 "./Core/Src/lcd.o"
 "./Core/Src/main.o"
 "./Core/Src/mos6502.o"
+"./Core/Src/ps2.o"
 "./Core/Src/sdioTapes.o"
 "./Core/Src/stm32f1xx_hal_msp.o"
 "./Core/Src/stm32f1xx_it.o"
