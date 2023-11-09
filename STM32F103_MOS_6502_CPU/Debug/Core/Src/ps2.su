@@ -1,5 +1,6 @@
-../Core/Src/ps2.c:48:9:getSCode	32	static
-../Core/Src/ps2.c:56:9:isKbrdReady	0	static
-../Core/Src/ps2.c:60:9:getAscii	0	static
-../Core/Src/ps2.c:71:6:toggleKeys	0	static
-../Core/Src/ps2.c:81:6:EXTI9_5_IRQHandler	16	static
+../Core/Src/ps2.c:51:9:getSCode	32	static
+../Core/Src/ps2.c:59:9:isKbrdReady	0	static
+../Core/Src/ps2.c:63:9:getAscii	0	static
+../Core/Src/ps2.c:74:6:toggleKeys	0	static
+../Core/Src/ps2.c:84:6:debug	16	static
+../Core/Src/ps2.c:91:6:EXTI9_5_IRQHandler	16	static

@@ -21,10 +21,11 @@ typedef struct {
 	uint8_t ctrlMap[104];
 } scanMaps;
 
-uint8_t getSCode(uint8_t *byte); // returns decimal value of little-endian byte.
-uint8_t isKbrdReady(); // tells whether there's a new key ready to read.
-uint8_t getAscii(); // returns the keyboard's current ascii value
-void toggleKeys(); // to toggle ctrl and other keys
+uint8_t getSCode(uint8_t *byte); 	// returns decimal value of little-endian byte.
+uint8_t isKbrdReady(); 				// tells whether there's a new key ready to read.
+uint8_t getAscii(); 				// returns the keyboard's current ascii value
+uint8_t getScanCode(); 				// return the latest scan code
+void toggleKeys(); 					// to toggle ctrl and other keys
 
 
 #endif /* INC_PS2_H_ */

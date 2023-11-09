@@ -30,6 +30,7 @@ struct Ps2 {
 	uint8_t parity;
 	uint8_t sCodeBuffer[2];
 	uint8_t readyToRead;
+	uint8_t debug;
 };
 
 struct Ps2 keyboard = {
@@ -41,7 +42,9 @@ struct Ps2 keyboard = {
 		.reading = 0,
 		.ctrlStatus = 0,
 		.parity = 0,
-		.readyToRead = 0
+		.sCodeBuffer = {RELEASE, RELEASE},
+		.readyToRead = 0,
+		.debug = 0
 };
 
 // convert byte into dec value
@@ -78,11 +81,20 @@ void toggleKeys(){
 	}
 }
 
+void debug(){
+	char outputS[4]; // 3 digits + null terminator
+	sprintf(outputS, "%03u", keyboard.sCodeBuffer[0]);
+	toggleKeys();
+	writeTerminal("|");
+}
+
 void EXTI9_5_IRQHandler(void)
 {
 	GPIO_PinState data_state = HAL_GPIO_ReadPin(keyboard.dataPort, keyboard.dataNumber);
 	// check if we are reading during this interrupt
 	if(keyboard.reading){
+		// do not allow external reading, new key being read.
+		keyboard.readyToRead = 0;
 		// check if end of string
 		if(keyboard.count == 9) {
 			// reset read values
@@ -114,6 +126,7 @@ void EXTI9_5_IRQHandler(void)
 				// new scancode not readable!
 				keyboard.readyToRead = 0;
 			}
+			if(keyboard.debug) debug();
 		}
 		// if not EOS
 		else{

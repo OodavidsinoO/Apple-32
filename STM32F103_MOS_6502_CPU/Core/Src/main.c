@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 // Standard libraries
 #include <stdint.h>
+#include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
 // MOS 6502
@@ -89,9 +90,6 @@ static void MX_FSMC_Init(void);
 uint8_t read6502(uint16_t address);
 void write6502(uint16_t address, uint8_t value);
 // UART & LCD
-void writelineTerminal(char *buffer);
-void writeTerminal(char *buffer);
-void writeTerminalChar(char *buffer);
 void handleInput(char *buffer);
 void handleOutput(uint8_t value);
 // Apple I Initialization

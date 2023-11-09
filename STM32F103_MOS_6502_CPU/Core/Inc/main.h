@@ -51,6 +51,10 @@ extern "C" {
 
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
+void handleInput(char *buffer);
+void writeTerminalChar(char *buffer);
+void writelineTerminal(char *buffer);
+void writeTerminal(char *buffer);
 
 /* USER CODE BEGIN EFP */
 
