@@ -122,8 +122,6 @@ uint8_t keyboardBuffer[1] = {0x00};
 
 // SD Card FS
 FATFS SDFatFs;
-FIL SDFile;
-UINT numberOfBytes;
 
 /**
  * Read from memory (MOS 6502)
@@ -287,6 +285,25 @@ void handleInput(char *buffer) {
     HAL_Delay(5000);
     keyboardBuffer[0] = SPACE_KEY;
     initApple1();
+  }
+  // Ctrl + L to load tapes
+  else if (buffer[0] == 0x0C) {
+    writelineTerminal("[Ctrl + L] Loading tapes...");
+    writelineTerminal("Enter Filename: apple30th.0280.0FFF.bin");
+    // Input filename
+    // char filename[64] = {0x00};
+    // while (keyboardBuffer[0] != '\r' || keyboardBuffer[0] != '\n') {
+    //   HAL_UART_Receive(&huart1, (uint8_t *)keyboardBuffer, 1, KEYBOARD_READ_INTERVAL); // Read from UART
+    //   // TODO: Read from PS/2
+    //   if (keyboardBuffer[0] == '\r' || keyboardBuffer[0] == '\n') break;
+    //   writeTerminalChar((char *)keyboardBuffer);
+    //   strcat(filename, (char *)keyboardBuffer);
+    //   keyboardBuffer[0] = 0x00;
+    // }
+    // writelineTerminal("");
+    // Load tape
+    char filename[64] = "apple30th.0280.0FFF.bin";
+    tapeLoading(filename);
   }
 }
 
@@ -458,7 +475,7 @@ static void MX_SDIO_SD_Init(void)
   hsd.Init.ClockPowerSave = SDIO_CLOCK_POWER_SAVE_DISABLE;
   hsd.Init.BusWide = SDIO_BUS_WIDE_1B;
   hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_DISABLE;
-  hsd.Init.ClockDiv = 2;
+  hsd.Init.ClockDiv = 4;
   /* USER CODE BEGIN SDIO_Init 2 */
 
   /* USER CODE END SDIO_Init 2 */

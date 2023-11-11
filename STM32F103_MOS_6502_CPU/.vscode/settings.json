@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "basic_0xe000.h": "c"
+        "basic_0xe000.h": "c",
+        "fatfs.h": "c",
+        "string.h": "c"
     }
 }
