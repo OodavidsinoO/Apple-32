@@ -15,7 +15,15 @@ extern uint8_t LCD_CURSOR_Y;
 void LCD_CursorForward ( void ) {
 	// Update the cursor
 	++LCD_CURSOR_X;
-	LCD_CURSOR_X %= 40;
+	if (LCD_CURSOR_X == 40) {
+		LCD_CURSOR_X = 0;
+		++LCD_CURSOR_Y;
+		if (LCD_CURSOR_Y == 25) {
+			LCD_CURSOR_Y = 0;
+			// Clear the screen
+			LCD_Clear(0, 0, 320, 240, BACKGROUND);
+		}
+	}
 	// Draw the new cursor
 	LCD_DrawChar(LCD_CURSOR_X * WIDTH_EN_CHAR, LCD_CURSOR_Y * HEIGHT_EN_CHAR, CURSOR_CHAR);
 }

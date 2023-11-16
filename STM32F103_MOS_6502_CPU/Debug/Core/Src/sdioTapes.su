@@ -1,4 +1,0 @@
-../Core/Src/sdioTapes.c:33:11:parseFilename	16	static
-../Core/Src/sdioTapes.c:56:5:loadBasic	1152	static
-../Core/Src/sdioTapes.c:86:5:loadBin	1152	static
-../Core/Src/sdioTapes.c:119:6:tapeLoading	16	static

@@ -65,8 +65,8 @@ all: main-build
 main-build: STM32F103_MOS_6502_CPU.elf secondary-outputs
 
 # Tool invocations
-STM32F103_MOS_6502_CPU.elf STM32F103_MOS_6502_CPU.map: $(OBJS) $(USER_OBJS) C:\Users\pasha\OneDrive\Desktop\Univesity\ bwomp\HKUST\ELEC3300\Project\Apple-32\STM32F103_MOS_6502_CPU\STM32F103VETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "STM32F103_MOS_6502_CPU.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"C:\Users\pasha\OneDrive\Desktop\Univesity bwomp\HKUST\ELEC3300\Project\Apple-32\STM32F103_MOS_6502_CPU\STM32F103VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="STM32F103_MOS_6502_CPU.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+STM32F103_MOS_6502_CPU.elf STM32F103_MOS_6502_CPU.map: $(OBJS) $(USER_OBJS) O:\2_Learning\2_HKUST\ Courses\ELEC3300\Apple\ 32\STM32F103_MOS_6502_CPU\STM32F103VETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "STM32F103_MOS_6502_CPU.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"O:\2_Learning\2_HKUST Courses\ELEC3300\Apple 32\STM32F103_MOS_6502_CPU\STM32F103VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="STM32F103_MOS_6502_CPU.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

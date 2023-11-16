@@ -120,7 +120,14 @@ int loadBin(tapeFile* file) {
 void tapeLoading(char* filename) {
     tapeFile* file = parseFilename(filename);
     if (strcmp(file->type, "basic") == 0) {
+        char* line = malloc(64);
         writelineTerminal("Loading BASIC program...");
+        sprintf(line, "Program: %s", file->name);
+        writelineTerminal(line);
+        sprintf(line, "Start: %04XR", file->start);
+        writelineTerminal(line);
+        sprintf(line, "End: %04XR", file->end);
+        writelineTerminal(line);  
         int result = loadBasic(file);
         if (result != 0) {
             writelineTerminal("Error loading file.");

@@ -243,7 +243,11 @@ void writeTerminal(char *buffer) {
  */
 void writeTerminalChar(char *buffer) {
   // UART
-  HAL_UART_Transmit(&huart1, (uint8_t *)buffer, 1, HAL_MAX_DELAY);
+  if (LCD_CURSOR_X + 1 == TERM_WIDTH) {
+    HAL_UART_Transmit(&huart1, (uint8_t *)UART_LINE_ENDING, strlen(UART_LINE_ENDING), HAL_MAX_DELAY);
+  } else {
+    HAL_UART_Transmit(&huart1, (uint8_t *)buffer, 1, HAL_MAX_DELAY);
+  }
 
   // LCD
   uint8_t tempX = LCD_CURSOR_X;
@@ -251,6 +255,7 @@ void writeTerminalChar(char *buffer) {
   char tempChar[2] = {0x00};
   tempChar[0] = buffer[0];
   tempChar[1] = '\0';
+
   LCD_CursorForward();
   LCD_DrawString(tempX * FONT_WIDTH, tempY * FONT_HEIGHT, tempChar);
 }
@@ -287,6 +292,17 @@ void handleInput(char *buffer) {
     HAL_Delay(5000);
     keyboardBuffer[0] = SPACE_KEY;
     initApple1();
+  }
+  // Ctrl + S to clear screen
+  else if (buffer[0] == 0x13) {
+    // UART
+    const char *clearScreen = "\x1B\x5B\x32\x4A"; // ANSI escape sequence to clear screen
+    HAL_UART_Transmit(&huart1, (uint8_t *)clearScreen, strlen(clearScreen), HAL_MAX_DELAY);
+
+    // LCD
+    LCD_Clear(0, 0, 320, 240, BACKGROUND);
+    LCD_CURSOR_X = 0;
+    LCD_CURSOR_Y = 0;
   }
   // Ctrl + L to load tapes
   else if (buffer[0] == 0x0C) {
