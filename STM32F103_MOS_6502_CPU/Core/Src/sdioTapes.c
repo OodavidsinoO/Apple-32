@@ -15,6 +15,7 @@ extern uint8_t RAM[RAM_SIZE];
 #define BASIC_HEADER_SIZE 182
 
 typedef struct {
+	TCHAR fullName[64];
     char name[64];
     uint16_t start;
     uint16_t end;
@@ -22,7 +23,7 @@ typedef struct {
 } tapeFile;
 
 // Filename parser
-// Extract program name and starting address
+// Extract program name and start/end addresses
 // Example: matrix.004A.00FF.basic
 // Extract matrix, 004A
 // Example: apple30th.0280.0FFF.bin
@@ -31,6 +32,7 @@ typedef struct {
 
 tapeFile* parseFilename(char* filename) {
     tapeFile* file = malloc(sizeof(tapeFile));
+    strcpy(file->fullName, filename);
     char* token = strtok(filename, ".");
     strcpy(file->name, token);
     token = strtok(NULL, ".");
@@ -57,17 +59,21 @@ int loadBasic(tapeFile* file) {
     UINT bytesRead;
     uint8_t* buffer = malloc(MAX_TAPE_SIZE);
     FRESULT result = f_mount(&fs, SDPath, 1);
+    char* line = malloc(64);
+
     if (result != FR_OK) {
         return -1;
     }
-    f_open(&fileHandle, file->name, FA_READ | FA_OPEN_EXISTING);
-    f_read(&fileHandle, buffer, MAX_TAPE_SIZE, &bytesRead);
-        char* line = malloc(64);
-        sprintf(line, "Bytes read: %d", bytesRead);
-        writelineTerminal(line);
+    // open file and read in the data (up to maximum tape size)
+    f_open(&fileHandle, file->fullName, FA_READ | FA_OPEN_EXISTING);
+		f_read(&fileHandle, buffer, MAX_TAPE_SIZE, &bytesRead);
+		sprintf(line, "Bytes read: %d", bytesRead);
+		writelineTerminal(line);
     f_close(&fileHandle);
-    memccpy(&RAM[BASIC_HEADER_START], buffer, 0, BASIC_HEADER_SIZE);
-    memccpy(&RAM[file->start], &buffer[BASIC_HEADER_SIZE], 0, file->end - file->start + 1);
+    // copy first 'BASIC_HEADER_SIZE' worth of data from the basic header start address
+    // the rest from the file's provided start address
+    memcpy(&RAM[BASIC_HEADER_START], buffer, BASIC_HEADER_SIZE);
+    memcpy(&RAM[file->start], &buffer[BASIC_HEADER_SIZE], file->end - file->start + 1);
     free(buffer);
     free(line);
     return 0;
@@ -87,16 +93,19 @@ int loadBin(tapeFile* file) {
     UINT bytesRead;
     uint8_t* buffer = malloc(MAX_TAPE_SIZE);
     FRESULT result = f_mount(&fs, SDPath, 1);
+    char* line = malloc(64);
+
     if (result != FR_OK) {
         return -1;
     }
-    f_open(&fileHandle, file->name, FA_READ | FA_OPEN_EXISTING);
-    f_read(&fileHandle, buffer, MAX_TAPE_SIZE, &bytesRead);
-        char* line = malloc(64);
-        sprintf(line, "Bytes read: %d", bytesRead);
-        writelineTerminal(line);
+    // open file and read in the data (up to maximum tape size)
+    f_open(&fileHandle, file->fullName, FA_READ | FA_OPEN_EXISTING);
+		f_read(&fileHandle, buffer, MAX_TAPE_SIZE, &bytesRead);
+		sprintf(line, "Bytes read: %d", bytesRead);
+		writelineTerminal(line);
     f_close(&fileHandle);
-    memccpy(&RAM[file->start], buffer, 0, file->end - file->start + 1);
+    // copy into ram at the specified start & end address
+    memcpy(&RAM[file->start], buffer, file->end - file->start + 1);
     free(buffer);
     free(line);
     return 0;

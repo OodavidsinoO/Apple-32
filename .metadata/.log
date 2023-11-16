@@ -1,0 +1,33 @@
+!SESSION 2023-11-08 17:22:37.525 -----------------------------------------------
+eclipse.buildId=Version 1.9.0
+java.version=11.0.11
+java.vendor=AdoptOpenJDK
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=en_HK
+Command-line arguments:  -os win32 -ws win32 -arch x86_64
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 4 4 2023-11-08 17:22:57.824
+!MESSAGE CubeMX plugin appears to be active, Log4j initialization might be too late.
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2023-11-08 17:22:57.895
+!MESSAGE Log4j initialized with config file C:\Users\pasha\OneDrive\Desktop\Univesity bwomp\HKUST\ELEC3300\Project\Apple-32\.metadata\.log4j.xml
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2023-11-08 17:23:01.307
+!MESSAGE Started RMI Server, listening on port 41337
+
+!ENTRY org.eclipse.cdt.core 1 0 2023-11-08 17:23:31.996
+!MESSAGE Indexed 'STM32F103_MOS_6502_CPU' (24 sources, 111 headers) in 3.98 sec: 8,754 declarations; 30,497 references; 2 unresolved inclusions; 36 syntax errors; 188 unresolved names (0.48%)
+!SESSION 2023-11-15 17:56:49.445 -----------------------------------------------
+eclipse.buildId=Version 1.9.0
+java.version=11.0.11
+java.vendor=AdoptOpenJDK
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=en_HK
+Command-line arguments:  -os win32 -ws win32 -arch x86_64
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 4 4 2023-11-15 17:56:59.355
+!MESSAGE CubeMX plugin appears to be active, Log4j initialization might be too late.
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2023-11-15 17:56:59.418
+!MESSAGE Log4j initialized with config file C:\Users\pasha\OneDrive\Desktop\Univesity bwomp\HKUST\ELEC3300\Project\Apple-32\.metadata\.log4j.xml
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2023-11-15 17:57:05.178
+!MESSAGE Started RMI Server, listening on port 41337
