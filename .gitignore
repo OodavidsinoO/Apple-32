@@ -48,6 +48,11 @@
 # Debugger files
 # define exception below if needed
 *.ini
+*.dSYM/
+*.su
+*.idb
+*.pdb
+*.d
 
 # Other files
 *.build_log.htm
@@ -66,10 +71,22 @@
 *.sct
 *.sfd
 *.sfr
+*.o
+*.hex
+*.d
+*.crf
+*.axf
+*.map
+*.htm
+*.lnp
+*.sct
+*.dep
+*.lst
+*.scvd
+*.iex
 
 # Miscellaneous
 *.tra
-*.bin
 *.fed
 *.l1p
 *.l2p
@@ -77,3 +94,8 @@
 
 # Editor files
 .metadata
+.settings
+[Rr]elease
+[Dd]ebug
+.launch
+.vscode
