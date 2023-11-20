@@ -288,8 +288,8 @@ void handleInput(char *buffer) {
   }
   // Ctrl + C to reset
   else if (buffer[0] == 0x03) {
-    writelineTerminal("[Ctrl + C] Resetting in 5 seconds...");
-    HAL_Delay(5000);
+    writelineTerminal("[Ctrl + C] Resetting in 1 seconds...");
+    HAL_Delay(1000);
     keyboardBuffer[0] = SPACE_KEY;
     initApple1();
   }
