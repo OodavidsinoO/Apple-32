@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <ctype.h>
 #include "fatfs.h"
 #include "mos6502.h"
 
@@ -40,6 +41,11 @@ tapeFile* parseFilename(char* filename) {
     token = strtok(NULL, ".");
     file->end = strtol(token, NULL, 16);
     token = strtok(NULL, ".");
+    // lowercase for pattern matching
+    for(int i = 0; token[i]; i++)
+    {
+        token[i] = tolower(token[i]);
+    }
     strcpy(file->type, token);
     return file;
 }

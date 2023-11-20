@@ -14,6 +14,8 @@
 // "ascii" codes
 #define BACK_SPC	0x7f
 #define CTRL_C      0x03
+#define CTRL_L		0x0C
+#define CTRL_S		0x13
 #define ENTER 		0x0A
 
 typedef struct {

@@ -306,21 +306,20 @@ void handleInput(char *buffer) {
   }
   // Ctrl + L to load tapes
   else if (buffer[0] == 0x0C) {
+	writelineTerminal("");
     writelineTerminal("[Ctrl + L] Loading tapes...");
-    writelineTerminal("Enter Filename: apple30th.0280.0FFF.bin");
+    char filename[64] = {0x00};
+    uint16_t index = 0x0200;
+    // read char by char from RAM input buffer
+    for (int i = index; (RAM[i] != 0x00 && (i-index < 64)); i++) {
+        filename[i - index] = RAM[i] & 0x7F;
+        RAM[i] = 0; // resetting it to 0 so it's empty.
+    }
+	buffer[0] = 0x9B; // esc character to reset input
     // Input filename
-    // char filename[64] = {0x00};
-    // while (keyboardBuffer[0] != '\r' || keyboardBuffer[0] != '\n') {
-    //   HAL_UART_Receive(&huart1, (uint8_t *)keyboardBuffer, 1, KEYBOARD_READ_INTERVAL); // Read from UART
-    //   // TODO: Read from PS/2
-    //   if (keyboardBuffer[0] == '\r' || keyboardBuffer[0] == '\n') break;
-    //   writeTerminalChar((char *)keyboardBuffer);
-    //   strcat(filename, (char *)keyboardBuffer);
-    //   keyboardBuffer[0] = 0x00;
-    // }
-    // writelineTerminal("");
+    writelineTerminal("");
     // Load tape
-    char filename[64] = "apple30th.0280.0FFF.bin";
+    // char filename[64] = "apple30th.0280.0FFF.bin";
     tapeLoading(filename);
   }
 }
