@@ -306,20 +306,23 @@ void handleInput(char *buffer) {
   }
   // Ctrl + L to load tapes
   else if (buffer[0] == 0x0C) {
+	buffer[0] = 0x00;
 	writelineTerminal("");
     writelineTerminal("[Ctrl + L] Loading tapes...");
     char filename[64] = {0x00};
     uint16_t index = 0x0200;
     // read char by char from RAM input buffer
-    for (int i = index; (RAM[i] != 0x00 && (i-index < 64)); i++) {
+    int i;
+    for (i = index; (RAM[i] != 0x00 && (i-index < 64)); i++) {
         filename[i - index] = RAM[i] & 0x7F;
         RAM[i] = 0; // resetting it to 0 so it's empty.
     }
+    // set last char to null term
+    filename[i - index] = '\0';
 	buffer[0] = 0x9B; // esc character to reset input
     // Input filename
     writelineTerminal("");
     // Load tape
-    // char filename[64] = "apple30th.0280.0FFF.bin";
     tapeLoading(filename);
   }
 }
