@@ -261,7 +261,6 @@ void tapeLoading(char* filename) {
     } else if (strcmp(file->type, "bin") == 0) {
         writelineTerminal("Loading binary program...");
         printFileLoadInfo(file, line);
-        writelineTerminal("Test");
         int result = loadBin(file);
         if (result != 0) {
         	writelineTerminal("Terminating File Load...");
