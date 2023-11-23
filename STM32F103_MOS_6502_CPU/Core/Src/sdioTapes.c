@@ -181,6 +181,10 @@ int loadBasic(tapeFile* file) {
     // the rest from the file's provided start address
     memcpy(&RAM[BASIC_HEADER_START], buffer, BASIC_HEADER_SIZE);
     memcpy(&RAM[file->start], &buffer[BASIC_HEADER_SIZE], file->end - file->start + 1);
+    // Buzzer beep from buffer using buzzerTone(uint8_t tone)
+    for (int i = 0; i < bytesRead; i++) {
+        buzzerTone(buffer[i]);
+    }
     free(buffer);
     free(line);
     return 0;
@@ -231,6 +235,10 @@ int loadBin(tapeFile* file) {
     f_close(&fileHandle);
     // copy into ram at the specified start & end address
     memcpy(&RAM[file->start], buffer, file->end - file->start + 1);
+    // Buzzer beep from buffer using buzzerTone(uint8_t tone)
+    for (int i = 0; i < bytesRead; i++) {
+        buzzerTone(buffer[i]);
+    }
     free(buffer);
     free(line);
     return 0;
