@@ -59,6 +59,12 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define KEY_CLEAR_SCREEN_Pin GPIO_PIN_13
+#define KEY_CLEAR_SCREEN_GPIO_Port GPIOC
+#define KEY_CLEAR_SCREEN_EXTI_IRQn EXTI15_10_IRQn
+#define KEY_PAUSE_Pin GPIO_PIN_0
+#define KEY_PAUSE_GPIO_Port GPIOA
+#define KEY_PAUSE_EXTI_IRQn EXTI0_IRQn
 #define LED_G_Pin GPIO_PIN_0
 #define LED_G_GPIO_Port GPIOB
 #define LED_B_Pin GPIO_PIN_1

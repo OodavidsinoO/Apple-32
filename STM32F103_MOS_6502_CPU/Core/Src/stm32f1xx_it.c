@@ -198,6 +198,62 @@ void SysTick_Handler(void)
 /* please refer to the startup file (startup_stm32f1xx.s).                    */
 /******************************************************************************/
 
-/* USER CODE BEGIN 1 */
+/**
+  * @brief This function handles EXTI line0 interrupt.
+  */
+void EXTI0_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI0_IRQn 0 */
 
+  /* USER CODE END EXTI0_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(KEY_PAUSE_Pin);
+  /* USER CODE BEGIN EXTI0_IRQn 1 */
+
+  /* USER CODE END EXTI0_IRQn 1 */
+}
+
+/**
+  * @brief This function handles EXTI line[15:10] interrupts.
+  */
+void EXTI15_10_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI15_10_IRQn 0 */
+
+  /* USER CODE END EXTI15_10_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(KEY_CLEAR_SCREEN_Pin);
+  /* USER CODE BEGIN EXTI15_10_IRQn 1 */
+
+  /* USER CODE END EXTI15_10_IRQn 1 */
+}
+
+/* USER CODE BEGIN 1 */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+  extern TIM_HandleTypeDef htim3;
+  extern UART_HandleTypeDef huart1;
+  extern uint8_t CPU_PAUSE;
+  extern uint16_t LCD_CURSOR_X;
+  extern uint16_t LCD_CURSOR_Y;
+
+  if (GPIO_Pin == KEY_PAUSE_Pin) {
+    // Pause/Resume
+    if (CPU_PAUSE) {
+      CPU_PAUSE = 0;
+    } else {
+      CPU_PAUSE = 1;
+      // Turn on Red LED
+      __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 200);
+      __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, 0);
+      __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, 0);
+    }
+  } else if (GPIO_Pin == KEY_CLEAR_SCREEN_Pin) {
+    // Clear screen
+    // UART
+    const char *clearScreen = "\x1B\x5B\x32\x4A"; // ANSI escape sequence to clear screen
+    HAL_UART_Transmit(&huart1, (uint8_t *)clearScreen, strlen(clearScreen), HAL_MAX_DELAY);
+    // LCD
+    LCD_Clear(0, 0, 320, 240, 0x0000);
+    LCD_CURSOR_X = 0;
+    LCD_CURSOR_Y = 0;
+  }
+}
 /* USER CODE END 1 */

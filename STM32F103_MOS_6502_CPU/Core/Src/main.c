@@ -94,6 +94,7 @@ static void MX_FSMC_Init(void);
 static void MX_SDIO_SD_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
 // MOS 6502
 uint8_t read6502(uint16_t address);
@@ -107,6 +108,9 @@ void initApple1(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+// CPU Block
+uint8_t CPU_PAUSE = 0; // 0: Running, 1: Paused
 
 // LED Performance Booster
 uint8_t LED_R_value = 0;
@@ -431,6 +435,9 @@ int main(void)
   MX_FATFS_Init();
   MX_TIM1_Init();
   MX_TIM3_Init();
+
+  /* Initialize interrupts */
+  MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
   LCD_INIT(); // Initialize LCD
   ledInit();
@@ -444,9 +451,14 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    // Execute instruction
-    exec6502(INSTRUCTION_CHUNK);
-    ledBreath();
+    if (CPU_PAUSE) {
+      buzzerBeep();
+      HAL_Delay(1000);
+    } else {
+      // Execute instruction
+      exec6502(INSTRUCTION_CHUNK);
+      ledBreath();
+    }
   }
   /* USER CODE END 3 */
 }
@@ -488,6 +500,20 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief NVIC Configuration.
+  * @retval None
+  */
+static void MX_NVIC_Init(void)
+{
+  /* EXTI0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+  /* EXTI15_10_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 }
 
 /**
@@ -717,6 +743,18 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LCD_RST_GPIO_Port, LCD_RST_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : KEY_CLEAR_SCREEN_Pin */
+  GPIO_InitStruct.Pin = KEY_CLEAR_SCREEN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(KEY_CLEAR_SCREEN_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : KEY_PAUSE_Pin */
+  GPIO_InitStruct.Pin = KEY_PAUSE_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(KEY_PAUSE_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PA5 */
   GPIO_InitStruct.Pin = GPIO_PIN_5;
