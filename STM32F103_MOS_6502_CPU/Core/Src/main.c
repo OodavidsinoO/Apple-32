@@ -27,12 +27,15 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdlib.h>
 // MOS 6502
 #include "mos6502.h"
 // LCD
 #include "lcd.h"
 // PS2
 #include "ps2.h"
+// ESP
+#include "esp8266.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -79,6 +82,7 @@ TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim3;
 
 UART_HandleTypeDef huart1;
+UART_HandleTypeDef huart3;
 
 SRAM_HandleTypeDef hsram1;
 
@@ -94,6 +98,7 @@ static void MX_FSMC_Init(void);
 static void MX_SDIO_SD_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_USART3_UART_Init(void);
 static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
 // MOS 6502
@@ -343,6 +348,25 @@ void handleInput(char *buffer) {
     // Load tape
     tapeLoading(filename);
   }
+  // ctrl + w to connect to wifi (temporary)
+  else if (buffer[0] == 0x17){
+		  uint8_t ip[4] = { 0x00 };
+		  char* ssid = "chatGPT";
+		  char* pswd = "badapple";
+		  uint8_t state = initESP(ip, ssid, pswd);
+		  char* output = malloc(128);
+		  if(state == 1) line = "Timed Out";
+		  else if(state == 2) line = "No OK from ACK.";
+		  else if(state == 3) line = "SSID & Pswd don't match network.";
+		  else if(state == 4) line = "IP Can't Be Fetched";
+		  else{
+			  sprintf(output, "Connected to %s successfully!", ssid);
+			  writelineTerminal(output);
+			  sprintf(output, "My IP:%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+		  }
+		  writelineTerminal(output);
+		  free(output);
+  }
 }
 
 /**
@@ -435,6 +459,7 @@ int main(void)
   MX_FATFS_Init();
   MX_TIM1_Init();
   MX_TIM3_Init();
+  MX_USART3_UART_Init();
 
   /* Initialize interrupts */
   MX_NVIC_Init();
@@ -719,6 +744,39 @@ static void MX_USART1_UART_Init(void)
   /* USER CODE BEGIN USART1_Init 2 */
 
   /* USER CODE END USART1_Init 2 */
+
+}
+
+/**
+  * @brief USART3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART3_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART3_Init 0 */
+
+  /* USER CODE END USART3_Init 0 */
+
+  /* USER CODE BEGIN USART3_Init 1 */
+
+  /* USER CODE END USART3_Init 1 */
+  huart3.Instance = USART3;
+  huart3.Init.BaudRate = 115200;
+  huart3.Init.WordLength = UART_WORDLENGTH_8B;
+  huart3.Init.StopBits = UART_STOPBITS_1;
+  huart3.Init.Parity = UART_PARITY_NONE;
+  huart3.Init.Mode = UART_MODE_TX_RX;
+  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART3_Init 2 */
+
+  /* USER CODE END USART3_Init 2 */
 
 }
 

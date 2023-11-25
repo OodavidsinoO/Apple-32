@@ -1,4 +1,5 @@
 "./Core/Src/buzzer.o"
+"./Core/Src/esp8266.o"
 "./Core/Src/lcd.o"
 "./Core/Src/ledPerformanceBooster.o"
 "./Core/Src/main.o"
