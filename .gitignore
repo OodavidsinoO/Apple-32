@@ -99,3 +99,7 @@
 [Dd]ebug
 .launch
 .vscode
+
+# AI files
+*.gguf
+__pycache__
