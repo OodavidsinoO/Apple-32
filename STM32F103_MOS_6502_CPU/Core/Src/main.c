@@ -350,22 +350,23 @@ void handleInput(char *buffer) {
   }
   // ctrl + w to connect to wifi (temporary)
   else if (buffer[0] == 0x17){
-		  uint8_t ip[4] = { 0x00 };
-		  char* ssid = "chatGPT";
-		  char* pswd = "badapple";
-		  uint8_t state = initESP(ip, ssid, pswd);
-		  char* output = malloc(128);
-		  if(state == 1) line = "Timed Out";
-		  else if(state == 2) line = "No OK from ACK.";
-		  else if(state == 3) line = "SSID & Pswd don't match network.";
-		  else if(state == 4) line = "IP Can't Be Fetched";
-		  else{
-			  sprintf(output, "Connected to %s successfully!", ssid);
-			  writelineTerminal(output);
-			  sprintf(output, "My IP:%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
-		  }
+	  buffer[0] = 0x00;
+	  uint8_t ip[4] = { 0x00 };
+	  char* ssid = "APPLEONE";
+	  char* pswd = "BADAPPLE";
+	  uint8_t state = initESP(ip, ssid, pswd);
+	  char* output = malloc(128);
+	  if(state == 1) output = "Timed Out";
+	  else if(state == 2) output = "No OK from ACK.";
+	  else if(state == 3) output = "SSID & Pswd don't match network.";
+	  else if(state == 4) output = "IP Can't Be Fetched";
+	  else{
+		  sprintf(output, "Connected to %s successfully!", ssid);
 		  writelineTerminal(output);
-		  free(output);
+		  sprintf(output, "My IP:%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+	  }
+	  writelineTerminal(output);
+	  free(output);
   }
 }
 
@@ -420,7 +421,7 @@ void initApple1(void) {
   pia.display_register = 0x00;
   writelineTerminal(" Complete");
 
-  buzzerBeep();
+//  buzzerBeep();
 }
 
 /* USER CODE END 0 */
