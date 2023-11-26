@@ -122,8 +122,9 @@ uint8_t initESP(uint8_t* ip, char* ssid, char* pswd){
 	if(!getResponse(buffer, timeOut)) return 1;
 
 	// OK ack
-	if(!getResponse(buffer, timeOut*10)) return 1;
+	if(!getResponse(buffer, timeOut*15)) return 1;
 	if(strstr(buffer, "FAIL")) return 3;
+
 	// get IP address
 	writelineTerminal("Fetching Own IP");
 	sendAT("AT+CIFSR\r\n");
@@ -131,26 +132,29 @@ uint8_t initESP(uint8_t* ip, char* ssid, char* pswd){
 	char* ipStart = strstr(buffer, "STAIP");
 	if(ipStart == NULL) return 4;
 	extractIP(ipStart+7, ip);
+
+	// set up TCP connection
+	writelineTerminal("Setting Up TCP Connection");
+	sendAT("AT+CIPSTART=\"TCP\",\"192.168.137.1\",8888\r\n");
+	if(!getResponse(buffer, timeOut*5)) return 1;
+	if(strstr(buffer, "ERROR")) return 5;
+
+	// set up transparent transmission
+	writelineTerminal("Setting Up Transparent Transmission");
+	sendAT("AT+CIPMODE=1\r\n");
+	if(!getResponse(buffer, timeOut)) return 1;
+
+	// start transmission
+	writelineTerminal("Starting Transmission");
+	sendAT("AT+CIPSEND\r\n");
 	return 0;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+uint8_t sendMessageToGPTServer(char* message){
+	sendAT(message);
+	// Receive the response until the end of the message
+	char buffer[1024] = { 0x00 };
+	if(!getResponse(buffer, 1000*10)) return 1;
+	printOutput(buffer);
+	return 0;
+}

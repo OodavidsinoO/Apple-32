@@ -67,6 +67,12 @@
 // Keyboard
 #define KEYBOARD_READ_INTERVAL 10 // ms
 #define SPACE_KEY 0x20
+// WiFi
+#define WIFI_SSID "APPLEONE"
+#define WIFI_PSWD "BADAPPLE"
+// Local GPT Server
+#define GPT_SERVER_IP "192.168.137.1"
+#define GPT_SERVER_PORT "8888"
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -348,25 +354,47 @@ void handleInput(char *buffer) {
     // Load tape
     tapeLoading(filename);
   }
-  // ctrl + w to connect to wifi (temporary)
+  // Ctrl + W to connect to WiFi
   else if (buffer[0] == 0x17){
 	  buffer[0] = 0x00;
 	  uint8_t ip[4] = { 0x00 };
-	  char* ssid = "APPLEONE";
-	  char* pswd = "BADAPPLE";
+	  char* ssid = WIFI_SSID;
+	  char* pswd = WIFI_PSWD;
 	  uint8_t state = initESP(ip, ssid, pswd);
 	  char* output = malloc(128);
-	  if(state == 1) output = "Timed Out";
-	  else if(state == 2) output = "No OK from ACK.";
-	  else if(state == 3) output = "SSID & Pswd don't match network.";
-	  else if(state == 4) output = "IP Can't Be Fetched";
+	  if (state == 1) output = "Timed Out";
+	  else if (state == 2) output = "No OK from ACK.";
+	  else if (state == 3) output = "SSID & PSWD don't match network.";
+	  else if (state == 4) output = "IP Can't Be Fetched";
+    else if (state == 5) output = "Failed to connect to GPT Server";
 	  else{
 		  sprintf(output, "Connected to %s successfully!", ssid);
 		  writelineTerminal(output);
-		  sprintf(output, "My IP:%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+		  sprintf(output, "My IP: %d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+      buzzerBeep();
 	  }
 	  writelineTerminal(output);
 	  free(output);
+  }
+  // Ctrl + G to send message to GPT server
+  else if (buffer[0] == 0x07){
+    buffer[0] = 0x00;
+    writelineTerminal("");
+    writelineTerminal("Apple One:");
+    char message[127] = {0x00};
+    uint16_t index = 0x0200;
+    // Read char by char from RAM input buffer
+    int i;
+    for (i = index; (RAM[i] != 0x00 && (i-index < 64)); i++) {
+        message[i - index] = RAM[i] & 0x7F;
+        RAM[i] = 0; // Resetting it to 0 so it's empty.
+    }
+    // set last char to null term
+    message[i - index] = '\0';
+    // esc character to reset input
+    buffer[0] = 0x9B;
+    // Send message to GPT server
+    sendMessageToGPTServer(message);
   }
 }
 
@@ -421,7 +449,7 @@ void initApple1(void) {
   pia.display_register = 0x00;
   writelineTerminal(" Complete");
 
-//  buzzerBeep();
+  // buzzerBeep();
 }
 
 /* USER CODE END 0 */

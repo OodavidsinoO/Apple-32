@@ -21,6 +21,7 @@ print(" [✅] Model: " + modelName)
 model = GPT4All(model_name = modelName,
                 model_path = Path(__file__).parent / "models",
                 allow_download = True,
+                device = "gpu",
                 verbose = True)
 
 # Model chat session
@@ -33,8 +34,8 @@ with model.chat_session(system_template, prompt_template):
         print(" [✅] Client connected: " + str(address))
         # Receive client message
         while True:
-            msg = clientsocket.recv(1024).decode("utf-8")
-            if msg == "QUIT":
+            msg = clientsocket.recv(1024).decode("utf-8").lower()
+            if msg == "quit":
                 # End chat session
                 print(" [⛔] Model chat session ended...")
                 print(" [⛔] TCP Server stopped...")
