@@ -73,8 +73,8 @@ void Error_Handler(void);
 #define LCD_BL_GPIO_Port GPIOD
 #define LED_R_Pin GPIO_PIN_5
 #define LED_R_GPIO_Port GPIOB
-#define SDIO_DETECT_Pin GPIO_PIN_8
-#define SDIO_DETECT_GPIO_Port GPIOB
+#define ESP_EN_Pin GPIO_PIN_8
+#define ESP_EN_GPIO_Port GPIOB
 #define LCD_RST_Pin GPIO_PIN_1
 #define LCD_RST_GPIO_Port GPIOE
 /* USER CODE BEGIN Private defines */

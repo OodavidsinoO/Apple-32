@@ -76,7 +76,7 @@ void toggleKeys(){
 	if(keyboard.sCodeBuffer[0] == L_CTRL){
 		keyboard.ctrlStatus = 1;
 	} // ctrl released
-	else if(keyboard.sCodeBuffer[0] == RELEASE && keyboard.sCodeBuffer[1] == L_CTRL){
+	else if(keyboard.sCodeBuffer[0] == RELEASE){
 		keyboard.ctrlStatus = 0;
 	}
 }
@@ -84,7 +84,8 @@ void toggleKeys(){
 void debug(){
 	char outputS[4]; // 3 digits + null terminator
 	sprintf(outputS, "%03u", keyboard.sCodeBuffer[0]);
-	toggleKeys();
+	writeTerminal("|");
+	writeTerminal(outputS);
 	writeTerminal("|");
 }
 
@@ -126,6 +127,7 @@ void EXTI9_5_IRQHandler(void)
 				// new scancode not readable!
 				keyboard.readyToRead = 0;
 			}
+			toggleKeys();
 			if(keyboard.debug) debug();
 		}
 		// if not EOS

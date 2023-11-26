@@ -16,7 +16,9 @@
 #define CTRL_C      0x03
 #define CTRL_L		0x0C
 #define CTRL_S		0x13
+#define CTRL_W		0x17
 #define ENTER 		0x0A
+#define ESC			0x9B
 
 typedef struct {
 	uint8_t defMap[104];

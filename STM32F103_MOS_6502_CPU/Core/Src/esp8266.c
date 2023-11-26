@@ -101,7 +101,6 @@ uint8_t initESP(uint8_t* ip, char* ssid, char* pswd){
 	//resetting the esp
 	writelineTerminal("Resetting");
 	sendAT("AT+RST\r\n");
-	if(!getResponse(buffer, timeOut)) return 1;
 	if(!getResponse(buffer, 4*timeOut)) return 1;
 
 	// ACK check
