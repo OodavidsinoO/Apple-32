@@ -21,7 +21,6 @@ print(" [✅] Model: " + modelName)
 model = GPT4All(model_name = modelName,
                 model_path = Path(__file__).parent / "models",
                 allow_download = True,
-                device = "gpu",
                 verbose = True)
 
 # Model chat session
