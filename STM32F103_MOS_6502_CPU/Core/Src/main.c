@@ -449,7 +449,7 @@ void initApple1(void) {
   pia.display_register = 0x00;
   writelineTerminal(" Complete");
 
-  // buzzerBeep();
+   buzzerBeep();
 }
 
 /* USER CODE END 0 */

@@ -25,6 +25,7 @@ model = GPT4All(model_name = modelName,
 
 # Model chat session
 with model.chat_session(system_template, prompt_template):
+    response = model.generate("Hello")
     print(" [✅] Model chat session started...")
     print(" [✅] Waiting for client connection...")
     # Accept client connection

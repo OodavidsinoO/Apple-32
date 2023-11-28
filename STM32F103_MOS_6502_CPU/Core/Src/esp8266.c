@@ -16,15 +16,16 @@
 // will look for a uart packet for 'timeOut' time
 // once found, will read the whole packet in.
 // if times out, returns 1.
-uint8_t getResponse(char* buffer, uint32_t timeOut){
-	uint8_t index = 0;
+uint32_t getResponse(char* buffer, uint32_t timeOut, uint32_t bounce){
+	uint32_t index = 0;
 	HAL_StatusTypeDef result;
 	char input[2] = { 0x00 };
 	uint8_t fullyRead = 0;
 	buffer[0] = '\0';
+	result = HAL_UART_Receive(&huart3, (uint8_t *)input, 1, timeOut);
+	if(result != HAL_OK) fullyRead = 1;
 	while(!fullyRead){
 		fullyRead = 1;
-		result = HAL_UART_Receive(&huart3, (uint8_t *)input, 1, timeOut);
 		// found a packet, now fully read it.
 		if(result==HAL_OK){
 			fullyRead = 0;
@@ -40,6 +41,7 @@ uint8_t getResponse(char* buffer, uint32_t timeOut){
 				result = HAL_UART_Receive(&huart3, (uint8_t *)input, 1, 30);
 			}
 		}
+		if(!fullyRead) result = HAL_UART_Receive(&huart3, (uint8_t *)input, 1, bounce);
 	}
 	// timed out.
 	if(buffer[0] == '\0') return 0;
@@ -97,38 +99,40 @@ uint8_t initESP(uint8_t* ip, char* ssid, char* pswd){
 	*/
 	char buffer[1024] = { 0x00 };
 	uint32_t timeOut = 1000; // timeout value in ms
+	uint32_t bounce = 1000;
 
 	//resetting the esp
 	writelineTerminal("Resetting");
 	sendAT("AT+RST\r\n");
-	if(!getResponse(buffer, 4*timeOut)) return 1;
+	if(!getResponse(buffer, timeOut, bounce)) return 1;
+	if(!getResponse(buffer, 4*timeOut, bounce)) return 1;
 
 	// ACK check
 	writelineTerminal("Sending ACK");
 	sendAT("AT\r\n");
-	if(!getResponse(buffer, timeOut)) return 1;
+	if(!getResponse(buffer, timeOut, bounce)) return 1;
 	if(strcmp(buffer, "AT\r\r\n\r\nOK\r\n")) return 2;
 
 	// set to client mode
 	writelineTerminal("Setting Mode");
 	sendAT("AT+CWMODE=1\r\n");
-	if(!getResponse(buffer, timeOut)) return 1;
+	if(!getResponse(buffer, timeOut, bounce)) return 1;
 
 	// connect to AP
 	char packet[16+32+63]; // chars, ssid, pswd
 	sprintf(packet, "AT+CWJAP=\"%s\",\"%s\"\r\n", ssid, pswd);
 	writelineTerminal("Connecting To Network");
 	sendAT(packet);
-	if(!getResponse(buffer, timeOut)) return 1;
-
-	// OK ack
-	if(!getResponse(buffer, timeOut*15)) return 1;
+	// at echo
+	if(!getResponse(buffer, timeOut, bounce)) return 1;
+	// conection status
+	if(!getResponse(buffer, timeOut*15, bounce)) return 1;
 	if(strstr(buffer, "FAIL")) return 3;
 
 	// get IP address
 	writelineTerminal("Fetching Own IP");
 	sendAT("AT+CIFSR\r\n");
-	if(!getResponse(buffer, timeOut)) return 1;
+	if(!getResponse(buffer, timeOut, bounce)) return 1;
 	char* ipStart = strstr(buffer, "STAIP");
 	if(ipStart == NULL) return 4;
 	extractIP(ipStart+7, ip);
@@ -136,13 +140,13 @@ uint8_t initESP(uint8_t* ip, char* ssid, char* pswd){
 	// set up TCP connection
 	writelineTerminal("Setting Up TCP Connection");
 	sendAT("AT+CIPSTART=\"TCP\",\"192.168.137.1\",8888\r\n");
-	if(!getResponse(buffer, timeOut*5)) return 1;
+	if(!getResponse(buffer, timeOut*5, bounce*5)) return 1;
 	if(strstr(buffer, "ERROR")) return 5;
 
 	// set up transparent transmission
 	writelineTerminal("Setting Up Transparent Transmission");
 	sendAT("AT+CIPMODE=1\r\n");
-	if(!getResponse(buffer, timeOut)) return 1;
+	if(!getResponse(buffer, timeOut, bounce)) return 1;
 
 	// start transmission
 	writelineTerminal("Starting Transmission");
@@ -151,10 +155,21 @@ uint8_t initESP(uint8_t* ip, char* ssid, char* pswd){
 }
 
 uint8_t sendMessageToGPTServer(char* message){
+	uint32_t timeOut = 1000;
+	uint32_t bounce = 1000;
 	sendAT(message);
 	// Receive the response until the end of the message
 	char buffer[1024] = { 0x00 };
-	if(!getResponse(buffer, 1000*10)) return 1;
+//	for(int i=0; i<15; i++){
+//		writeTerminal(".");
+//		HAL_Delay(1000);
+//	}
+	writelineTerminal("");
+	if(!getResponse(buffer, timeOut*2, bounce));
+	if(!getResponse(buffer, timeOut*30, bounce)) {
+		printOutput(buffer);
+		return 1;
+	}
 	printOutput(buffer);
 	return 0;
 }

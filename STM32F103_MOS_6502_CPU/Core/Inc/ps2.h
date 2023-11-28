@@ -17,6 +17,7 @@
 #define CTRL_L		0x0C
 #define CTRL_S		0x13
 #define CTRL_W		0x17
+#define CTRL_G 		0x07
 #define ENTER 		0x0A
 #define ESC			0x9B
 

@@ -26,9 +26,9 @@ struct Ps2 {
 	uint8_t count;
 	uint8_t reading;
 	uint8_t scanCode[9];
-	uint8_t ctrlStatus;
 	uint8_t parity;
 	uint8_t sCodeBuffer[2];
+	uint8_t asciiBuffer[2];
 	uint8_t readyToRead;
 	uint8_t debug;
 };
@@ -40,9 +40,9 @@ struct Ps2 keyboard = {
 		.dataNumber = GPIO_PIN_6,
 		.count = 0,
 		.reading = 0,
-		.ctrlStatus = 0,
 		.parity = 0,
 		.sCodeBuffer = {RELEASE, RELEASE},
+		.asciiBuffer = {'\0', '\0'},
 		.readyToRead = 0,
 		.debug = 0
 };
@@ -61,23 +61,17 @@ uint8_t isKbrdReady(){
 }
 
 uint8_t getAscii(){
-	// key read now, no longer new key to read
 	keyboard.readyToRead = 0;
-	if(keyboard.ctrlStatus){
+	return keyboard.asciiBuffer[0];
+}
+
+uint8_t sToAscii(){
+	// key read now, no longer new key to read
+	if(keyboard.sCodeBuffer[1]==L_CTRL){
 		return asciiMaps.ctrlMap[keyboard.sCodeBuffer[0]];
 	}
 	else{
 		return asciiMaps.defMap[keyboard.sCodeBuffer[0]];
-	}
-}
-
-void toggleKeys(){
-	// ctrl toggle
-	if(keyboard.sCodeBuffer[0] == L_CTRL){
-		keyboard.ctrlStatus = 1;
-	} // ctrl released
-	else if(keyboard.sCodeBuffer[0] == RELEASE){
-		keyboard.ctrlStatus = 0;
 	}
 }
 
@@ -87,6 +81,7 @@ void debug(){
 	writeTerminal("|");
 	writeTerminal(outputS);
 	writeTerminal("|");
+	writelineTerminal("");
 }
 
 void EXTI9_5_IRQHandler(void)
@@ -117,18 +112,16 @@ void EXTI9_5_IRQHandler(void)
 			keyboard.parity = 0;
 			// check if the new key is readable
 			// is in the list (lazy and) then check if it has an action (not 0)
-			if(keyboard.sCodeBuffer[0] < 104 && getAscii() != 0){
-				// then make sure the key has changed (not just held / let go)
-				if(keyboard.sCodeBuffer[0] != (keyboard.sCodeBuffer[1])){
-					keyboard.readyToRead = 1;
-				}
+			if(keyboard.sCodeBuffer[0] < 104 && sToAscii() != 0){
+				keyboard.readyToRead = 1;
 			}
 			else{
 				// new scancode not readable!
 				keyboard.readyToRead = 0;
 			}
-			toggleKeys();
 			if(keyboard.debug) debug();
+			keyboard.asciiBuffer[1] = keyboard.asciiBuffer[0];
+			keyboard.asciiBuffer[0] = sToAscii();
 		}
 		// if not EOS
 		else{
